@@ -4,7 +4,7 @@
   ansible.builtin.template:
     src: "{{ openvpn_client_conf_template }}"
     dest: "{{ openvpn_etcdir }}/ovpns/{{ _openvpn__client }}.ovpn"
-    mode: 0o644
+    mode: "0600"
   loop: "{{ openvpn_clients }}"
   loop_control:
     loop_var: _openvpn__client
