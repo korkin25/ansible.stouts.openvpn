@@ -7,4 +7,4 @@
     sysctl_set: true
     state: present
     reload: true
-  when: not lookup('env', 'IN_MOLECULE') | d(true, true) | bool
+  when: lookup('env', 'IN_MOLECULE') | default(false, true) | ternary(false, true)
