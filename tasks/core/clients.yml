@@ -13,7 +13,7 @@
 - name: Pack clients
   ansible.builtin.command: >-
     zip -j
-      {{ _openvpn__client }}.zip
+      {{ ansible_hostname }}-{{ _openvpn__client }}.zip
       {{ openvpn_keydir }}/issued/{{ _openvpn__client }}.crt
       {{ openvpn_keydir }}/private/{{ _openvpn__client }}.key
       {{ _openvpn__client }}.ovpn
@@ -30,7 +30,7 @@
 - name: Download client credentials
   ansible.builtin.fetch:
     src: "{{ openvpn_etcdir }}/ovpns/{{ _openvpn__client }}.zip"
-    dest: "{{ openvpn_download_dir }}"
+    dest: "{{ openvpn_download_dir }}/{{ openvpn_host }}/"
     flat: true
     validate_checksum: true
   loop: "{{ openvpn_clients }}"
@@ -40,10 +40,23 @@
   when: openvpn_download_clients | bool
   tags: openvpn-download
 
+- name: Create client directory before extraction on localhost
+  ansible.builtin.file:
+    path: "{{ openvpn_download_dir }}{{ openvpn_host }}/{{ _openvpn__client }}"
+    state: directory
+    mode: "0700"
+  loop: "{{ openvpn_clients }}"
+  loop_control:
+    loop_var: _openvpn__client
+  delegate_to: localhost
+  become: false
+  tags: openvpn-download
+  when: openvpn_download_clients | bool
+
 - name: Extract client credentials
   ansible.builtin.unarchive:
-    src: "{{ openvpn_download_dir }}/{{ _openvpn__client }}.zip"
-    dest: "{{ openvpn_download_dir }}"
+    src: "{{ openvpn_download_dir }}{{ openvpn_host }}/{{ _openvpn__client }}.zip"
+    dest: "{{ openvpn_download_dir }}{{ openvpn_host }}/{{ _openvpn__client }}"
   loop: "{{ openvpn_clients }}"
   loop_control:
     loop_var: _openvpn__client
@@ -58,13 +71,13 @@
   ansible.builtin.file:
     path: "{{ openvpn_ccd }}"
     state: directory
-    mode: 0o755
+    mode: "0700"
 
 - name: Upload ccd configs
   ansible.builtin.copy:
     content: "{{ _openvpn__ccd_config.content }}"
     dest: "{{ openvpn_ccd }}/{{ _openvpn__ccd_config.name }}"
-    mode: 0o644
+    mode: "0o644"
   loop: "{{ openvpn_ccd_configs }}"
   loop_control:
     loop_var: _openvpn__ccd_config
