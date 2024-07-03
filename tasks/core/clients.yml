@@ -13,7 +13,7 @@
 - name: Pack clients
   ansible.builtin.command: >-
     zip -j
-      {{ ansible_hostname }}-{{ _openvpn__client }}.zip
+      {{ _openvpn__client }}.zip
       {{ openvpn_keydir }}/issued/{{ _openvpn__client }}.crt
       {{ openvpn_keydir }}/private/{{ _openvpn__client }}.key
       {{ _openvpn__client }}.ovpn
@@ -26,6 +26,7 @@
   args:
     chdir: "{{ openvpn_etcdir }}/ovpns/"
   when: openvpn_clients_changed.results[index] is changed
+  tags: openvpn-download
 
 - name: Download client credentials
   ansible.builtin.fetch:
