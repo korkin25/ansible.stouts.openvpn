@@ -26,7 +26,6 @@
   args:
     chdir: "{{ openvpn_etcdir }}/ovpns/"
   when: openvpn_clients_changed.results[index] is changed
-  tags: openvpn-download
 
 - name: Download client credentials
   ansible.builtin.fetch:
